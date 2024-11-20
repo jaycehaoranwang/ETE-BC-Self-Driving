@@ -21,24 +21,38 @@ import carla
 
 import argparse
 import math
-
+import random
 
 def clamp(value, minimum=0.0, maximum=100.0):
     return max(minimum, min(value, maximum))
 
 
 class Sun(object):
-    def __init__(self, azimuth, altitude):
+    def __init__(self, azimuth, altitude, teleport=False, stay_ticks=100):
         self.azimuth = azimuth
         self.altitude = altitude
         self._t = 0.0
-
+        if teleport:
+            self.teleport = teleport
+        self.stay_ticks = stay_ticks
+        self.tick_count = stay_ticks
     def tick(self, delta_seconds):
-        self._t += 0.008 * delta_seconds
-        self._t %= 2.0 * math.pi
-        self.azimuth += 0.25 * delta_seconds
-        self.azimuth %= 360.0
-        self.altitude = (50 * math.sin(self._t)) + 20
+        if self.teleport:
+            if self.tick_count > 0:
+                self.tick_count -= 1
+            else:
+                self.azimuth = random.uniform(0, 360)
+                self.altitude = random.uniform(20, 80)
+                self.tick_count = self.stay_ticks
+        else:
+         # Smoothly move the sun in azimuth direction
+            self.azimuth += 0.25 * delta_seconds
+            self.azimuth %= 360.0
+            
+            # Keep altitude within a range that ensures the sun is always in the sky
+            self.altitude = 60.0 + 20.0 * math.sin(self._t)  # Range: 50 to 70 degrees
+            self._t += 0.008 * delta_seconds
+            self._t %= 2.0 * math.pi
 
     def __str__(self):
         return 'Sun(alt: %.2f, azm: %.2f)' % (self.altitude, self.azimuth)
@@ -60,7 +74,7 @@ class Storm(object):
         self._t = clamp(delta + self._t, -250.0, 100.0)
         self.clouds = clamp(self._t + 40.0, 0.0, 30.0)
         delay = -10.0 if self._increasing else 90.0
-        self.wind = 5.0 if self.clouds <= 20 else 60 if self.clouds >= 70 else 40
+        self.wind = 5.0 if self.clouds <= 20 else 60 if self.clouds >= 70 else 20
         #self.fog = clamp(self._t - 10, 0.0, 30.0)
         # self.puddles = clamp(self._t + delay, 0.0, 85.0)
         # self.wetness = clamp(self._t * 5, 0.0, 100.0)
@@ -75,9 +89,9 @@ class Storm(object):
 
 
 class Weather(object):
-    def __init__(self, weather):
+    def __init__(self, weather, teleport_sun=False, stay_ticks=100):
         self.weather = weather
-        self._sun = Sun(weather.sun_azimuth_angle, weather.sun_altitude_angle)
+        self._sun = Sun(weather.sun_azimuth_angle, weather.sun_altitude_angle, teleport_sun, stay_ticks)
         self._storm = Storm(weather.precipitation)
 
     def tick(self, delta_seconds):

@@ -79,20 +79,9 @@ def print_vehicle_info(vehicle):
 
 def steer_const_speed(vehicle, curr_speed, set_speed, steer):
     control = vehicle.get_control()
-    #keys = pygame.key.get_pressed()
     control.throttle = 0.5 if curr_speed < set_speed else 0.0
     control.brake = 0.5 if curr_speed > set_speed else 0.0
     control.steer = steer
-    # if keys[pygame.K_a]:  # Left
-    #     control.steer = -0.5
-    # elif keys[pygame.K_d]:  # Right
-    #     control.steer = 0.5
-    # else:
-    #     control.steer = 0
-
-    # if keys[pygame.K_SPACE]:  # Brake
-    #     control.brake = 1.0
-
     vehicle.apply_control(control)
 
 def keyboard_control(vehicle):
@@ -188,6 +177,7 @@ def initialize_carla_client(host='127.0.0.1', port=2000, timeout=10):
 def spawn_vehicle(world, blueprint_filter="vehicle.tesla.model3", spawn_point=None, ego=True):
     blueprint_library = world.get_blueprint_library()
     vehicle_bp = blueprint_library.find(blueprint_filter)
+    vehicle_bp.set_attribute('color', '255,255,255')
     if ego:
         vehicle_bp.set_attribute('role_name', 'hero')
     spawn_point = spawn_point or random.choice(world.get_map().get_spawn_points())
