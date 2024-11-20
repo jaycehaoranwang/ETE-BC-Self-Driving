@@ -93,10 +93,6 @@ def main():
         timeout=simulation_params['timeout']
     )
     world = client.get_world()
-    # settings = world.get_settings()
-    # settings.synchronous_mode = True # Enables synchronous mode
-    # settings.fixed_delta_seconds = 0.05 #controls the fixed time step (delta) used by the physics engine and the simulation for each frame.Lower is more accurate, more simulation steps per frame
-    # world.apply_settings(settings)
     actor_list = []
     print("Current Map Name:", client.get_world().get_map().name)
     if simulation_params['map_name'] not in client.get_world().get_map().name:
@@ -263,7 +259,6 @@ def main():
                 
     finally:
 
-
         print("Cleaning up actors...")
         cv2.destroyAllWindows()
         for actor in actor_list:
@@ -276,7 +271,7 @@ def main():
             map_name = simulation_params['map_name']
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             print("SAVING WITH TIMESTAMP:", timestamp)
-            output_dir = os.path.join('expert_data', map_name)
+            output_dir = os.path.join('expert_data', map_name, timestamp)
             os.makedirs(output_dir, exist_ok=True) 
             # Save the data
             try:
