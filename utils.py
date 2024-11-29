@@ -6,6 +6,7 @@ import os
 import queue
 from time import time
 import cv2
+
 class CarlaSyncMode(object):
     """
     Context manager to synchronize output from different sensors. Synchronous
@@ -47,7 +48,6 @@ class CarlaSyncMode(object):
         data = [self._retrieve_data(q, timeout) for q in self._queues]
         assert all(x.frame == self.frame for x in data)
         velocity = self.ego_vehicle.get_velocity()
-
         return data, velocity
 
     def __exit__(self, *args, **kwargs):
@@ -222,3 +222,31 @@ def attach_IMU(world, ego_vehicle, imu_params):
     # Sensor is placed at the origin of vehicle coordinate frame (adjust if needed)
     imu = world.spawn_actor(imu_bp, carla.Transform(), attach_to=ego_vehicle)
 
+def visualize_depth(depth_map, window_name="Depth Map"):
+    """
+    Visualize a depth map using OpenCV with normalization and a colormap.
+
+    Parameters:
+    - depth_map: np.ndarray
+        HxW numpy array representing the depth map.
+    - window_name: str
+        The name of the visualization window.
+
+    Returns:
+    - None
+    """
+    # Normalize depth map to 0-255 for visualization
+    depth_normalized = cv2.normalize(depth_map, None, 0, 255, cv2.NORM_MINMAX)
+    # Convert to 8-bit for proper display
+    depth_8bit = depth_normalized.astype(np.uint8)
+    # Apply a colormap (e.g., COLORMAP_JET or COLORMAP_MAGMA)
+    depth_colormap = cv2.applyColorMap(depth_8bit, cv2.COLORMAP_JET)
+    # Display the depth map
+    cv2.imshow(window_name, depth_colormap)
+    cv2.waitKey(1)  # Display the frame for a short period (1ms) to allow updates
+
+    # Function to update the image
+def visualize_rgb(new_image_data):
+    disp_img = new_image_data * 255
+    cv2.imshow('Segmentation Map', disp_img)
+    cv2.waitKey(1)  # Display the image and wait for 1 millisecond (allows real-time updates)
