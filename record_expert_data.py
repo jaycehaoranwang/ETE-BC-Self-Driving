@@ -181,13 +181,17 @@ def main():
     input_noise = generate_temporally_correlated_noise(600, 1/SIM_FPS, steer_noise_cap, 0.05)
     tick_count = 0
     save_recorded_data = False
-
+    VIZ_LIDAR = False
+    STEERING_NOISE = True
     # Set up Open3D Visualizer
-    vis = o3d.visualization.Visualizer()
-    vis.create_window()
-    point_cloud = o3d.geometry.PointCloud()
-    vis.add_geometry(point_cloud)
-
+    if VIZ_LIDAR:
+        vis = o3d.visualization.Visualizer()
+        vis.create_window()
+        point_cloud = o3d.geometry.PointCloud()
+        vis.add_geometry(point_cloud)
+    else:
+        vis = None
+        point_cloud = None
     try:
         with CarlaSyncMode(world, ego_vehicle, camera_rgb, camera_semseg, lidar, imu_sensor, fps=SIM_FPS) as sync_mode:
             while True:
@@ -222,7 +226,10 @@ def main():
                 if joy.get_button(4) != 0:
                     print("Terminating")
                     break
-                output_steer = steer #+ input_noise[tick_count]
+                if STEERING_NOISE:
+                    output_steer = steer + input_noise[tick_count]
+                else:
+                    output_steer = steer
                 steer_const_speed(ego_vehicle, speed, set_speed, output_steer)  
                 data, velocity = sync_mode.tick(timeout=20.0)
 
@@ -235,7 +242,7 @@ def main():
                 draw_image(display, carla_image_rgb)
                 
                 np_image_rgb, np_image_semseg, np_lidar, np_imu = process_image(carla_image_rgb), process_semSeg(carla_image_semseg), process_lidar(carla_lidar_frame, vis, point_cloud), process_imu(carla_imu_frame)
-                #ipdb.set_trace()
+
                 if record_data:
                     steering_input_data.append(steer)
                     rgb_data[tick_count] = np_image_rgb
@@ -256,7 +263,6 @@ def main():
                     (8, 28))
                 tick_count += 1
                 pygame.display.flip()
-                #ipdb.set_trace()
                 
     finally:
 

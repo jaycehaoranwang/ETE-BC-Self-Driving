@@ -3,6 +3,7 @@ import numpy as np
 import ipdb
 import h5py
 import os
+import open3d as o3d
 def save_RGB_tensor(image_array, output_path, chunk_size=1000):
     # Assuming `data` is the original tensor of shape [N, 640, 320, 3]
     N, H, W, C = image_array.shape
@@ -73,11 +74,23 @@ def process_image(image):
     array = array[:, :, ::-1]     # Convert BGRA to RGB
     return array
 
-def process_lidar(data):
+def process_lidar(data, o3d_vis=None, o3d_pc=None):
     # Convert and process LiDAR data as before
     points = np.frombuffer(data.raw_data, dtype=np.float32)
     points = np.reshape(points, (-1, 4))
-    
+    points = points[~np.isnan(points).any(axis=1)] #delete points with NaN
+    if o3d_vis is not None and o3d_pc is not None:
+        # Extract XYZ coordinates from the frame
+        xyz_points = points[:, :3]
+        xyz_points[:,0] = -xyz_points[:,0]
+        # Create a PointCloud object and assign the points
+        o3d_pc.points = o3d.utility.Vector3dVector(xyz_points)
+        # Apply a bounding box to focus the view on the points
+        o3d_vis.clear_geometries()
+        o3d_vis.add_geometry(o3d_pc)
+        o3d_vis.update_geometry(o3d_pc)
+        o3d_vis.poll_events()
+        o3d_vis.update_renderer()
     return points
     
 def process_imu(data):
