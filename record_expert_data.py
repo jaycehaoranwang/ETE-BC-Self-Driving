@@ -171,6 +171,7 @@ def main():
     driving_state = 0
 
     steering_input_data = []
+    noisy_steering_input_data = []
     rgb_data = np.zeros((14400, camera_params['image_size_y'], camera_params['image_size_x'] ,3), dtype=np.uint8)
     semseg_data = []
     lidar_data = []
@@ -244,6 +245,7 @@ def main():
                 np_image_rgb, np_image_semseg, np_lidar, np_imu = process_image(carla_image_rgb), process_semSeg(carla_image_semseg), process_lidar(carla_lidar_frame, vis, point_cloud), process_imu(carla_imu_frame)
 
                 if record_data:
+                    noisy_steering_input_data.append(output_steer)
                     steering_input_data.append(steer)
                     rgb_data[tick_count] = np_image_rgb
                     semseg_data.append(np_image_semseg)
@@ -295,7 +297,8 @@ def main():
                 # 2. Then save the smaller arrays together
                 np.savez_compressed(os.path.join(output_dir, f'control_data_{timestamp}_steerNoiseCap_{str(steer_noise_cap)[2:]}.npz'),
                                 steering_input=np.array(steering_input_data),
-                                driving_state_data=np.array(driving_state_data))
+                                noisy_steering_input=np.array(noisy_steering_input_data),
+                                driving_state=np.array(driving_state_data))
                 save_RGB_tensor(rgb_data, os.path.join(output_dir, f'rgb_data_{timestamp}_steerNoiseCap_{str(steer_noise_cap)[2:]}.npz'))
                 print("RGB data saved.")
             except:
