@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import open3d as o3d
 import time
 import cv2
-
+from models import PointPillars
 
 def visualize_point_cloud(lidar_frame):
     """
@@ -73,8 +73,9 @@ def load_control_data(input_path):
     with np.load(input_path) as data:
         # Extract the control data
         steering_data = data['steering_input']
-        driving_state_data = data['driving_state_data']
-    return steering_data, driving_state_data
+        driving_state_data = data['driving_state']
+        noisy_steering_data = data['noisy_steering_input']
+    return steering_data, noisy_steering_data, driving_state_data
 
 def load_RGB_tensor(input_path):
     """
@@ -166,14 +167,15 @@ def display_lidar_sequence(lidar_data, o3d_vis, o3d_pc, loop=False):
 
 # Example usage
 if __name__ == "__main__":
-    input_path = r"expert_data\Town01\20241129_030720\lidar_sequence_20241129_030720_steerNoiseCap_2"
+    input_path = r"expert_data\Town01\20241129_041828\lidar_sequence_20241129_041828_steerNoiseCap_15"
     lidar_sequence = load_lidar_sequence(input_path)
-    #steering, driving_state = load_control_data(r"expert_data\Town01\control_data_20241120_201116_steerNoiseCap_2.npz")
-    rgb_images = load_RGB_tensor(r"expert_data\Town01\20241129_030720\rgb_data_20241129_030720_steerNoiseCap_2.npz")
-    display_RGB_images(rgb_images)
+    #steering, noisy_steering, driving_state = load_control_data(r"expert_data\Town01\20241129_041828\control_data_20241129_041828_steerNoiseCap_15.npz")
+    #rgb_images = load_RGB_tensor(r"expert_data\Town01\20241129_030720\rgb_data_20241129_030720_steerNoiseCap_2.npz")
+    #display_RGB_images(rgb_images)
     
     #process point cloud frame by frame
     # Set up Open3D Visualizer
+    ipdb.set_trace()
     o3d_vis = o3d.visualization.Visualizer()
     o3d_vis.create_window()
     o3d_pc = o3d.geometry.PointCloud()
@@ -181,5 +183,5 @@ if __name__ == "__main__":
     display_lidar_sequence(lidar_sequence, o3d_vis, o3d_pc)
 
     # Example: Print some details about the loaded data
-    ipdb.set_trace()
+    
 

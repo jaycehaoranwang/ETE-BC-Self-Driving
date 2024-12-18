@@ -178,7 +178,7 @@ def main():
     imu_data = []
     driving_state_data = []
     SIM_FPS = 15
-    steer_noise_cap = 0.2
+    steer_noise_cap = 0.15
     input_noise = generate_temporally_correlated_noise(600, 1/SIM_FPS, steer_noise_cap, 0.05)
     tick_count = 0
     save_recorded_data = False
@@ -274,7 +274,8 @@ def main():
             actor.destroy()
         ego_vehicle.destroy()
         pygame.quit()
-        vis.destroy_window()
+        if VIZ_LIDAR:
+            vis.destroy_window()
         if save_recorded_data:
             # Create directory for expert data
             map_name = simulation_params['map_name']
